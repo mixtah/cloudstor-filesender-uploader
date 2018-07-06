@@ -88,14 +88,15 @@ if __name__ == '__main__':
     #filedir = os.path.join(os.path.dirname(os.path.abspath( __file__ )),filename)
     dirs = []
     with open("dirs.txt","r") as directories:
-        for dir in iter(directories.readline,b''):
+        lines = directories.read().splitlines()
+        for dir in lines:
             dirs.append(dir+os.sep)
             
     with open("files_to_upload.txt","r") as input_file:
         for file_path in iter(input_file.readline,b''):
             file_path = file_path[:-1]
             filedir, filename = os.path.split(file_path)
-            modifiedpath = remove_prefixes(file_path,dirs)
+            modifiedpath = remove_prefixes(file_path,dirs).replace("\\","/")
             url = siteurl+rootdir+modifiedpath
             
             quoted_headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
