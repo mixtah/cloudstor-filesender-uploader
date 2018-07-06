@@ -87,7 +87,10 @@ def lookup(fullpath):
 
 if __name__ == '__main__':
     
-    folders = sys.argv[1:]
+    folders = []
+    with open("dirs.txt","r") as directories:
+        for dir in iter(directories.readline,b''):
+            folders.append(dir)
     
     print("Reading Existing File List...")
     

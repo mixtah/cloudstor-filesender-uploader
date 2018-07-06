@@ -29,6 +29,16 @@ mimetype = {
             'raw16':'application/octet-stream',
             }
 
+def remove_prefixes(string,prefixes):
+    if isinstance(prefixes,str):
+        if string.startswith(prefixes):
+            return string[len(prefixes):]
+    else:
+        for p in prefixes:
+            if string.startswith(p):
+                string = string[len(p):]
+    return string
+
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
@@ -76,19 +86,23 @@ if __name__ == '__main__':
     
     #filename = 'test_upload_file.txt'
     #filedir = os.path.join(os.path.dirname(os.path.abspath( __file__ )),filename)
-    
+    dirs = []
+    with open("dirs.txt","r") as directories:
+        for dir in iter(directories.readline,b''):
+            dirs.append(dir)
+            
     with open("files_to_upload.txt","r") as input_file:
         for file_path in iter(input_file.readline,b''):
             file_path = file_path[:-1]
             filedir, filename = os.path.split(file_path)
+            modifiedpath = file_path.remove(file_path,dirs)
+            url = siteurl+rootdir+modifiedpath
             
             quoted_headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
-            quoted_headers['Content-Length'] = str(os.stat(filedir).st_size)
+            quoted_headers['Content-Length'] = str(os.stat(file_path).st_size)
             quoted_headers['Content-Type'] =  mimetype.get(os.path.splitext(filename)[1][1:],'application/octet-stream')
             
             with open(file_path,'rb') as to_upload:
-            
-                url = siteurl+rootdir+filename
                 
                 #print("URL: "+str(url))
                 #print("Method: "+str(args.X))
