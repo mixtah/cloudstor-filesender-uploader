@@ -74,27 +74,32 @@ if __name__ == '__main__':
     # ('Content-Length', '1831')
     # ('Content-Type', 'text/plain')
     
-    filename = 'test_upload_file.txt'
-    filedir = os.path.join(os.path.dirname(os.path.abspath( __file__ )),filename)
+    #filename = 'test_upload_file.txt'
+    #filedir = os.path.join(os.path.dirname(os.path.abspath( __file__ )),filename)
     
-    quoted_headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
-    quoted_headers['Content-Length'] = str(os.stat(filedir).st_size)
-    quoted_headers['Content-Type'] =  mimetype.get(os.path.splitext(filename)[1][1:],'application/octet-stream')
-    
-    with open(filedir,'rb') as to_upload:
-    
-        url = siteurl+rootdir+filename
-        
-        print("URL: "+str(url))
-        print("Method: "+str(args.X))
-        print("Cookie: "+str(cookie_dict))
-        print("Headers: "+str(quoted_headers))
-        print("Params: "+str(data))
-        
-        print("Uploading File...\n")
-        
-        response = requests.request(args.X,url,params=data,cookies=cookie_dict,headers=quoted_headers,files={'file':to_upload})
-        
-        print(str(response))
-        print(str(response.text))        
-        print("File Upload Complete.")
+    with open("files_to_upload.txt","r") as input_file:
+        for file_path in iter(input_file.readline,b''):
+            file_path = file_path[:-1]
+            filedir, filename = os.path.split(file_path)
+            
+            quoted_headers['Content-Disposition'] = 'attachment; filename="%s"' % filename
+            quoted_headers['Content-Length'] = str(os.stat(filedir).st_size)
+            quoted_headers['Content-Type'] =  mimetype.get(os.path.splitext(filename)[1][1:],'application/octet-stream')
+            
+            with open(file_path,'rb') as to_upload:
+            
+                url = siteurl+rootdir+filename
+                
+                #print("URL: "+str(url))
+                #print("Method: "+str(args.X))
+                #print("Cookie: "+str(cookie_dict))
+                #print("Headers: "+str(quoted_headers))
+                #print("Params: "+str(data))
+                
+                print("Uploading File: "+filename)
+                
+                response = requests.request(args.X,url,params=data,cookies=cookie_dict,headers=quoted_headers,files={'file':to_upload})
+                
+                print(str(response))
+                print(str(response.text))        
+                print("File Upload Complete.")

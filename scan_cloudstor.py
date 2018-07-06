@@ -34,22 +34,25 @@ def scan_dir(url,method,**kwargs):
     response = requests.request(method,url,**kwargs)
     
     print(url)
-    
-    modified_resp = response.text.replace("d:","")
-    
-    root = ET.fromstring(modified_resp)
-    
-    dirpath = url[len(siteurl):]
-    dirs = {}
-    files = {}
-    
-    for resp_item in root:        
-        resp_dict = xml_to_dict(resp_item)['response']
+    try:
+        modified_resp = response.text.replace("d:","")
         
-        if resp_dict.get('propstat',{}).get('prop',{}).get('resourcetype',{}).get('collection',None) is None:
-            files[resp_dict['href']] = resp_dict
-        else:
-            dirs[resp_dict['href']] = resp_dict
+        root = ET.fromstring(modified_resp)
+        
+        dirpath = url[len(siteurl):]
+        dirs = {}
+        files = {}
+        
+        for resp_item in root:        
+            resp_dict = xml_to_dict(resp_item)['response']
+            
+            if resp_dict.get('propstat',{}).get('prop',{}).get('resourcetype',{}).get('collection',None) is None:
+                files[resp_dict['href']] = resp_dict
+            else:
+                dirs[resp_dict['href']] = resp_dict
+    except:
+        print(response.text)
+        raise
             
     return dirpath,dirs,files
             
