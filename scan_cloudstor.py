@@ -123,7 +123,7 @@ if __name__ == '__main__':
     
     print("Generating File List...\n")
     
-    with open("filelist.txt","w") as output:
+    with open("filelist.json","w") as output:
         json.dump(all_files_with_dir_structure(url,args.X,params=data,cookies=cookie_dict,headers=quoted_headers),output)
     
     print("File List Complete.")
