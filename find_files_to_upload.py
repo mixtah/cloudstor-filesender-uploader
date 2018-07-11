@@ -19,7 +19,7 @@ test_files = ['E:\\UC-accented-D-final\\Spkr2_56_Session1\\Session1_1\\2_56_1_1_
              'E:\\UC-accented-D-final\\Spkr2_56_Session1\\Session1_1\\2_56_1_1_001-ch4-c2Left-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_56_Session1\\Session1_1\\2_56_1_1_001-ch5-c2Right-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_56_Session1\\Session1_1\\2_56_1_1_001-ch6-speaker-yes.wav',
-             
+
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002.xml',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002-ch1-maptask-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002-ch2-boundary-yes.wav',
@@ -27,7 +27,7 @@ test_files = ['E:\\UC-accented-D-final\\Spkr2_56_Session1\\Session1_1\\2_56_1_1_
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002-ch4-c2Left-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002-ch5-c2Right-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_4_1_002-ch6-speaker-yes.wav',
-             
+
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_2_9_003.xml',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_2_9_003-ch1-maptask-yes.wav',
              'E:\\UC-accented-D-final\\Spkr2_218_Session4\\Session4_9\\2_218_2_9_003-ch2-boundary-yes.wav',
@@ -46,7 +46,7 @@ def lookup(fullpath):
     folder_bits = path_components[0].split(os.path.sep)
     component_folder = folder_bits[-1]
     session_folder = folder_bits[-2]
-    
+
     file_name_bits = file_name.split('-',1)
     item_id = file_name_bits[0]
     channel = None
@@ -57,24 +57,24 @@ def lookup(fullpath):
         #indicates the file should be an item related file
         expected_component_folder = "Session"+bits[2]+"_"+bits[3]
         expected_session_folder = "Spkr"+bits[0]+"_"+bits[1]+"_"+"Session"+bits[2]
-        
+
         if not item_id in auditdata:
             auditdata[item_id] = {'extcount':{},
                                   'channels':[],
                                   'valid_component_folder': component_folder==expected_component_folder,
                                   'valid_session_folder': session_folder==expected_session_folder,
                                  }
-        
+
         if component_folder!=expected_component_folder or session_folder!=expected_session_folder:
             print("Expected Foldername Mismatch: "+item_id)
-        
+
         auditdata[item_id]['extcount'][file_ext] = auditdata[item_id]['extcount'].get(file_ext,0)+1
         if channel:
             auditdata[item_id]['channels'].append(channel)
-    
+
     filesize = os.stat(fullpath).st_size
     auditdata['totalSize'] = auditdata.get("totalSize",0)+filesize
-    
+
     try:
         if filelist['dirs'][session_folder+'/'
                             ]['dirs'][session_folder+'/'+component_folder+'/'
@@ -86,18 +86,25 @@ def lookup(fullpath):
     return False
 
 if __name__ == '__main__':
-    
+
     folders = []
+    print("Reading from directories...")
     with open("dirs.txt","r") as directories:
         for dir in iter(directories.readline,b''):
+            if dir[-1]=="\n":
+                dir = dir[:-1]
             folders.append(dir)
-    
+            print(dir)
+
     print("Reading Existing File List...")
-    
+
     #load files that already exist online
     with open("filelist.json","r") as fh:
         filelist = json.load(fh)
-    
+
+    count = 0
+    notexistscount = 0
+
     print("Starting Folder Scan...")
     #scan files
     for folder in folders:
@@ -106,20 +113,22 @@ if __name__ == '__main__':
             for root, dirs, files in os.walk(folder):
                 print("\t"+root)
                 for file in files:
+                    count = count + 1
                     fullfile = os.path.join(root,file)
-                    if not lookup(fullfile):
+                    exists = lookup(fullfile)
+                    #print("Exists: "+str(exists)+" \t "+fullfile)
+                    if not exists:
+                        notexistscount = notexistscount + 1
                         filestoupload.append(fullfile)
-    
+
+    print("Scanned "+str(count)+" files. "+str(notexistscount)+" of them don't exist.")
     print("Saving Files to Upload List...")
     with open("files_to_upload.txt","w") as output:
         for file in filestoupload:
             output.write(str(file)+'\n')
-    
+
     print("Saving Audit Data...")
     with open("local-file-audit.json","w") as auditfile:
         json.dump(auditdata,auditfile)
-    
+
     print("Scan Complete")
-    
-    
-    
